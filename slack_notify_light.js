@@ -6,7 +6,7 @@ const fs = require('fs');
 // ログインURLとターゲットURL
 const loginUrl = 'https://www.swim-g.net/cgi-bin/dneo/dneo.cgi?cmd=login';
 const targetUrl = 'https://www.swim-g.net/cgi-bin/dneo/dneo.cgi?';  // ログイン後にアクセスするURL
-const slackWebhookUrl = 'https://hooks.slack.com/services/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'; // Slack Webhook URL
+const slackWebhookUrl = 'https://hooks.slack.com/services/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'; // Slack Webhook URL
 
 // ログインに使用するIDとパスワード
 const username = '48025';  // ユーザーID
