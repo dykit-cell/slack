@@ -10,7 +10,7 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Set up Node.js
       uses: actions/setup-node@v3
@@ -18,7 +18,11 @@ jobs:
         node-version: '20'
 
     - name: Install dependencies
-      run: npm install puppeteer axios fs
+      run: npm install  # package.json に基づいてインストール
+
+    - name: Install Puppeteer browsers
+      run: npx puppeteer browsers install chrome  # Puppeteer用のChromeブラウザをインストール
 
     - name: Run the script
-      run: node slack_notify_light.js  # あなたのスクリプト名
+      run: node slack_notify_light.js  # スクリプトを実行
+git status
