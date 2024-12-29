@@ -25,4 +25,3 @@ jobs:
 
     - name: Run the script
       run: node slack_notify_light.js  # スクリプトを実行
-git status
