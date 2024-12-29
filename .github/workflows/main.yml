@@ -18,7 +18,7 @@ jobs:
         node-version: '20'
 
     - name: Install dependencies
-      run: npm install puppeteer axios
+      run: npm install puppeteer axios fs
 
     - name: Run the script
       run: node slacl_notify_light.js  # あなたのスクリプト名

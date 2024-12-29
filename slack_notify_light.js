@@ -1,6 +1,7 @@
 const puppeteer = require('puppeteer');
 const crypto = require('crypto');
 const axios = require('axios');
+const fs = require('fs');
 
 // ログインURLとターゲットURL
 const loginUrl = 'https://www.swim-g.net/cgi-bin/dneo/dneo.cgi?cmd=login';
@@ -11,7 +12,26 @@ const slackWebhookUrl = 'https://hooks.slack.com/services/T07HQMPB5LZ/B086R03QN8
 const username = '48025';  // ユーザーID
 const password = 'tjtdks';  // パスワード
 
-let lastContentHash = null; // 前回のコンテンツのハッシュを保存
+// ハッシュを保存するファイルのパス
+const hashFilePath = './lastContentHash.txt';
+
+// 前回のハッシュをファイルから読み込む関数
+function loadLastContentHash() {
+    if (fs.existsSync(hashFilePath)) {
+        return fs.readFileSync(hashFilePath, 'utf-8');
+    }
+    return null;
+}
+
+// ハッシュをファイルに保存する関数
+function saveContentHash(hash) {
+    try {
+        fs.writeFileSync(hashFilePath, hash, 'utf-8');
+        console.log("新しいハッシュを保存しました:", hash);
+    } catch (err) {
+        console.error('ハッシュの保存に失敗しました:', err);
+    }
+}
 
 // Puppeteerを使ってログイン後のページを操作する関数
 async function checkForUpdates() {
@@ -19,7 +39,7 @@ async function checkForUpdates() {
     const page = await browser.newPage();
 
     // ログインページにアクセス
-    await page.goto(loginUrl);
+    await page.goto(loginUrl, { timeout: 0 });
 
     // ログインフォームにIDとパスワードを入力して送信
     await page.type('input[name="UserID"]', username);  // ユーザーID入力
@@ -54,13 +74,15 @@ async function checkForUpdates() {
     const contentToCheck = expiredItemHtml.trim();
 
     // コンテンツのハッシュを計算
+    let lastContentHash = loadLastContentHash(); // ファイルから前回のハッシュを読み込む
     const currentHash = crypto.createHash('md5').update(contentToCheck).digest('hex');
 
     // コンテンツが変更されたかどうかをチェック
-    if (lastContentHash && currentHash !== lastContentHash) {
+    if (currentHash !== lastContentHash) {
         console.log('Content has changed!');
+        console.log(currentHash, lastContentHash);
         await axios.post(slackWebhookUrl, {
-            text: `デスクネッツの回覧板が更新されました！`,
+            text: `<!channel>デスクネッツの回覧板が更新されました！`,
             attachments: [
                 {
                     fallback: 'Updated content',
@@ -73,12 +95,25 @@ async function checkForUpdates() {
         console.log('更新はありません');
     }
 
-    // 現在のハッシュを保存
-    lastContentHash = currentHash;
+    // 更新があった場合もなかった場合も要素のHTMLを表示
+    console.log(' 最新の回覧板HTML');
+    console.log(expiredItemHtml);  // 要素のHTMLを表示
+
+    await axios.post("https://hooks.slack.com/services/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", {
+        text: `回覧板状況 `,
+        attachments: [
+            {
+                fallback: 'Updated content',
+                pretext: 'HTML形式で見にくいですが:',
+                text: `\`\`\`html\n${contentToCheck}\n\`\`\``, // HTMLとして表示
+            }
+        ]
+    });
+
+    // 現在のハッシュをファイルに保存
+    saveContentHash(currentHash);
 
     // ブラウザを閉じる
     await browser.close();
 }
-
-// 定期的に15分ごとに更新チェックを実行
-setInterval(checkForUpdates, 15 * 60 * 1000);
+checkForUpdates();

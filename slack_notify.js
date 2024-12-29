@@ -19,7 +19,7 @@ async function checkForUpdates() {
     const page = await browser.newPage();
 
     // ログインページにアクセス
-    await page.goto(loginUrl);
+    await page.goto(loginUrl, { timeout: 0 });
 
     // ログインフォームにIDとパスワードを入力して送信
     await page.type('input[name="UserID"]', username);  // ユーザーID入力
@@ -60,7 +60,7 @@ async function checkForUpdates() {
     if (lastContentHash && currentHash !== lastContentHash) {
         console.log('Content has changed!');
         await axios.post(slackWebhookUrl, {
-            text: `デスクネッツの回覧板が更新されました！`,
+            text: `<!channel>デスクネッツの回覧板が更新されました！`,
             attachments: [
                 {
                     fallback: 'Updated content',
@@ -74,11 +74,11 @@ async function checkForUpdates() {
     }
 
     // 更新があった場合もなかった場合も要素のHTMLを表示
-    console.log('最新の回覧板HTML');
+    console.log(' 最新の回覧板HTML');
     console.log(expiredItemHtml);  // 要素のHTMLを表示
 
-    await axios.post("https://hooks.slack.com/services/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", {
-        text: `回覧板状況`,
+    await axios.post("https://hooks.slack.com/services/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", {
+        text: `回覧板状況 `,
         attachments: [
             {
                 fallback: 'Updated content',
@@ -95,6 +95,6 @@ async function checkForUpdates() {
     // ブラウザを閉じる
     await browser.close();
 }
-
 // 定期的に15分ごとに更新チェックを実行
-setInterval(checkForUpdates, 15 * 60 * 1000);
+
+setInterval(checkForUpdates, 20000);
