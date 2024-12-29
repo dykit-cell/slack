@@ -21,4 +21,4 @@ jobs:
       run: npm install puppeteer axios fs
 
     - name: Run the script
-      run: node slacl_notify_light.js  # あなたのスクリプト名
+      run: node slack_notify_light.js  # あなたのスクリプト名
