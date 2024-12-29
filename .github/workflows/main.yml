@@ -2,7 +2,7 @@ name: Check for Updates
 
 on:
   schedule:
-    - cron: '*/5 * * * *'  # 15分おきに実行
+    - cron: '*/5 * * * *'  # 5分おきに実行
 
 jobs:
   check_for_updates:
@@ -11,6 +11,8 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}  # ここで GITHUB_TOKEN を使用
 
     - name: Set up Node.js
       uses: actions/setup-node@v3
@@ -32,4 +34,4 @@ jobs:
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
         git add lastContentHash.txt
         git commit -m "Update lastContentHash.txt"
-        git push origin main
+        git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/dykit-cell/slack.git HEAD:main  # トークンを使ってpush
