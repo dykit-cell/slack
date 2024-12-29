@@ -33,6 +33,8 @@ function saveContentHash(hash) {
     }
 }
 
+
+
 // Puppeteerを使ってログイン後のページを操作する関数
 async function checkForUpdates() {
     const browser = await puppeteer.launch({ headless: true });  // ブラウザをヘッドレスモードで起動

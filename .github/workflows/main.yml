@@ -2,7 +2,7 @@ name: Check for Updates
 
 on:
   schedule:
-    - cron: '*/15 * * * *'  # 15分おきに実行
+    - cron: '*/5 * * * *'  # 15分おきに実行
 
 jobs:
   check_for_updates:
@@ -25,3 +25,11 @@ jobs:
 
     - name: Run the script
       run: node slack_notify_light.js  # スクリプトを実行
+
+    - name: Commit and push updated hash file
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        git add lastContentHash.txt
+        git commit -m "Update lastContentHash.txt"
+        git push origin main
