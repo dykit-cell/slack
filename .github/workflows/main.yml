@@ -2,7 +2,7 @@ name: Check for Updates
 
 on:
   schedule:
-    - cron: '*/5 * * * *'  # 5分おきに実行
+    - cron: '*/30 * * * *'  # 5分おきに実行
 
 jobs:
   check_for_updates:
