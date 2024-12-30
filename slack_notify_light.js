@@ -93,6 +93,10 @@ async function checkForUpdates() {
                 }
             ]
         });
+
+        // 現在のハッシュをファイルに保存
+        saveContentHash(currentHash);
+
     } else {
         console.log('更新はありません');
     }
@@ -111,9 +115,6 @@ async function checkForUpdates() {
             }
         ]
     });
-
-    // 現在のハッシュをファイルに保存
-    saveContentHash(currentHash);
 
     // ブラウザを閉じる
     await browser.close();
