@@ -9,31 +9,33 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Set up Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '20'
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
 
-    - name: Install required libraries
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y \
-          libnss3 \
-          libxss1 \
-          libasound2 \
-          libatk1.0-0 \
-          libpangocairo-1.0-0 \
-          libatk-bridge2.0-0 \
-          libcups2
+      - name: Install system dependencies
+        run: |
+          sudo add-apt-repository "deb http://archive.ubuntu.com/ubuntu/ focal main restricted universe multiverse"
+          sudo apt-get update
+          sudo apt-get install -y libasound2
 
-    - name: Install dependencies
-      run: npm install  # package.json に基づいてインストール
+      - name: Install dependencies
+        run: npm install  # package.json に基づいてインストール
 
-    - name: Install Puppeteer browsers
-      run: npx puppeteer browsers install chrome
+      - name: Install Puppeteer browsers
+        run: npx puppeteer browsers install chrome  # Puppeteer用のChromeブラウザをインストール
 
-    - name: Run the script
-      run: node slack_notify_light.js  # スクリプトを実行
+      - name: Run the script
+        run: node slack_notify_light.js  # スクリプトを実行
+
+      - name: Commit and push updated hash file
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add lastContentHash.txt
+          git commit -m "Update lastContentHash.txt"
+          git push origin main
