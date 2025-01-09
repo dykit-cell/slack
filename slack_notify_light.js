@@ -76,8 +76,10 @@ async function checkForUpdates() {
     // `tr.portal-item-expired` の最初の要素のHTMLを取得
     const expiredItemHtml = await page.$eval('tr.portal-item-expired', element => element.outerHTML);
 
-    // `tr.portal-item-expired` のテキストを取得
-    const contentToCheck = expiredItemHtml.trim();
+    // `tr.portal-item-expired` 内のリンクテキストを取得
+    const contentToCheck = await page.$eval('tr.portal-item-expired a', element => element.textContent.trim());
+    console.log(contentToCheck);
+
 
     // コンテンツのハッシュを計算
     let lastContentHash = loadLastContentHash(); // ファイルから前回のハッシュを読み込む
@@ -92,7 +94,6 @@ async function checkForUpdates() {
             attachments: [
                 {
                     fallback: 'Updated content',
-                    pretext: 'HTML形式で見にくいですが:',
                     text: `\`\`\`html\n${contentToCheck}\n\`\`\``, // HTMLとして表示
                 }
             ]
@@ -107,15 +108,14 @@ async function checkForUpdates() {
 
     // 更新があった場合もなかった場合も要素のHTMLを表示
     console.log(' 最新の回覧板HTML');
-    console.log(expiredItemHtml);  // 要素のHTMLを表示
+    console.log(contentToCheck);  // 要素のHTMLを表示
 
     await axios.post("https://hooks.slack.com/services/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", {
         text: `回覧板状況 `,
         attachments: [
             {
                 fallback: 'Updated content',
-                pretext: 'HTML形式で見にくいですが:',
-                text: `\`\`\`html\n${contentToCheck}\n\`\`\``, // HTMLとして表示
+                text: `\`\`\`\n${contentToCheck}\n\`\`\``, // HTMLとして表示
             }
         ]
     });
