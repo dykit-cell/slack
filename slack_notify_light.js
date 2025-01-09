@@ -37,7 +37,11 @@ function saveContentHash(hash) {
 
 // Puppeteerを使ってログイン後のページを操作する関数
 async function checkForUpdates() {
-    const browser = await puppeteer.launch({ headless: true });  // ブラウザをヘッドレスモードで起動
+    const browser = await puppeteer.launch({
+        headless: true,
+        args: ['--no-sandbox', '--disable-setuid-sandbox'], // サンドボックスを無効化
+    });
+        
     const page = await browser.newPage();
 
     // ログインページにアクセス
