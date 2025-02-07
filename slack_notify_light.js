@@ -94,7 +94,7 @@ async function checkForUpdates() {
             attachments: [
                 {
                     fallback: 'Updated content',
-                    text: `\`\`\`html\n${contentToCheck}\n\`\`\``, // HTMLとして表示
+                    text: `\`\`\`\n${contentToCheck}\n\`\`\``, // HTMLとして表示
                 }
             ]
         });
