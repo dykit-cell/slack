@@ -2,7 +2,7 @@ name: Check for Updates
 
 on:
   schedule:
-    - cron: '*/60 * * * *'  
+    - cron: '*/15 * * * *'  
 
 jobs:
   check_for_updates:
@@ -17,29 +17,47 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install system dependencies
+      # npm の依存関係をキャッシュするステップを追加
+      - name: Cache Node.js modules
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm # npm install のキャッシュパス
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      # Puppeteer のブラウザをキャッシュするステップを追加
+      # Puppeteerはデフォルトで ~/.cache/puppeteer にインストールされることが多いです
+      - name: Cache Puppeteer browsers
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/puppeteer # Puppeteer のキャッシュパス
+          key: ${{ runner.os }}-puppeteer-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-puppeteer-
+
+      - name: Install system dependencies # このステップはキャッシュが効かないため、毎回実行されます
         run: |
           sudo add-apt-repository "deb http://archive.ubuntu.com/ubuntu/ focal main restricted universe multiverse"
           sudo apt-get update
           sudo apt-get install -y libasound2
 
-      - name: Install dependencies
-        run: npm install  # package.json に基づいてインストール
+      - name: Install dependencies # キャッシュがあれば高速化、なければ通常通りインストール
+        run: npm install
 
-      - name: Install Puppeteer browsers
-        run: npx puppeteer browsers install chrome  # Puppeteer用のChromeブラウザをインストール
+      - name: Install Puppeteer browsers # キャッシュがあれば高速化、なければ通常通りインストール
+        run: npx puppeteer browsers install chrome
 
       - name: Run the script
-        run: node slack_notify_light.js  # スクリプトを実行
+        run: node slack_notify_light.js
         env:
-          # Slack Bot Token と通知先のチャンネルIDをSecretsから取得
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-          SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL }} # 例: C1234567890
+          SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL }}
 
       - name: Commit and push updated hash file
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add lastContentHash.txt
-          git commit -m "Update lastContentHash.txt" || echo "No changes to commit" # 変更がない場合はエラーにしない
-          git push origin main || echo "No changes to push" # 変更がない場合はエラーにしない
+          git commit -m "Update lastContentHash.txt" || echo "No changes to commit"
+          git push origin main || echo "No changes to push"
