@@ -2,7 +2,7 @@ name: Check for Updates
 
 on:
   schedule:
-    - cron: '*/60 * * * *'  # 5分おきに実行
+    - cron: '*/60 * * * *'  
 
 jobs:
   check_for_updates:
@@ -31,11 +31,15 @@ jobs:
 
       - name: Run the script
         run: node slack_notify_light.js  # スクリプトを実行
+        env:
+          # Slack Bot Token と通知先のチャンネルIDをSecretsから取得
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL }} # 例: C1234567890
 
       - name: Commit and push updated hash file
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add lastContentHash.txt
-          git commit -m "Update lastContentHash.txt"
-          git push origin main
+          git commit -m "Update lastContentHash.txt" || echo "No changes to commit" # 変更がない場合はエラーにしない
+          git push origin main || echo "No changes to push" # 変更がない場合はエラーにしない
