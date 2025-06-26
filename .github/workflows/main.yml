@@ -15,11 +15,10 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4 # アクションの最新バージョンを使用
         with:
-          node-version: '20' # プロジェクトのNode.jsバージョンに合わせてください
+          node-version: '20' # あなたのプロジェクトのNode.jsバージョンに合わせてください
           cache: 'npm' # npmの依存関係をキャッシュするための組み込みオプション
 
       # Puppeteer のブラウザをキャッシュするステップ
-      # Puppeteerはデフォルトで ~/.cache/puppeteer にインストールされることが多いです
       - name: Cache Puppeteer browsers
         uses: actions/cache@v4 # アクションの最新バージョンを使用
         with:
@@ -32,19 +31,13 @@ jobs:
         run: |
           sudo apt-get update
           # libasound2 のインストール。Ubuntuのバージョンによっては libasound2t64 が必要
-          # 両方試してみて、エラーが出ない方を使用してください。
-          # 最新のUbuntuでは libasound2t64 が推奨されます。
           sudo apt-get install -y --no-install-recommends libasound2 || sudo apt-get install -y --no-install-recommends libasound2t64
-
-          # 他にもPuppeteerでよく必要となる依存関係があればここに追加
-          # 例: sudo apt-get install -y --no-install-recommends libnss3 libxss1 libatk-bridge2.0-0 libgtk-3-0 libgbm-dev
 
       - name: Install Node.js dependencies
         run: npm ci # package-lock.json に基づいて依存関係をインストール
 
       # Puppeteer のブラウザインストールは npm ci で自動的に行われることが多いので、
       # 明示的に実行する必要がない場合はこのステップを削除またはコメントアウトしてください。
-      # 必要であれば以下のコメントを外してください。
       # - name: Install Puppeteer browsers if needed
       #   run: npx puppeteer browsers install chrome
 
@@ -58,7 +51,9 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          # ファイルに変更がない場合はコミットしないように改良
           git add lastContentHash.txt
-          git diff --quiet --exit-code || git commit -m "Update lastContentHash.txt"
-          git push origin main || echo "No changes to push or main branch not found" # エラーを抑制し、メッセージを表示
+          # 変更がなくてもコミットを試みる。
+          # 変更がなければ "nothing to commit" が表示されるが、コマンド自体は成功する。
+          git commit -m "Update lastContentHash.txt" || true
+          # プッシュが失敗してもジョブは失敗しないようにする
+          git push origin main || echo "No changes to push or main branch not found"
