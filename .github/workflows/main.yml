@@ -2,51 +2,51 @@ name: Check for Updates
 
 on:
   schedule:
-    - cron: '*/60 * * * *'  
+    - cron: '*/60 * * * *' # 60分ごとに実行
 
 jobs:
   check_for_updates:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest # 最新のUbuntu環境を使用
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4 # アクションの最新バージョンを使用
 
       - name: Set up Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4 # アクションの最新バージョンを使用
         with:
-          node-version: '20'
+          node-version: '20' # プロジェクトのNode.jsバージョンに合わせてください
+          cache: 'npm' # npmの依存関係をキャッシュするための組み込みオプション
 
-      # npm の依存関係をキャッシュするステップを追加
-      - name: Cache Node.js modules
-        uses: actions/cache@v3
-        with:
-          path: ~/.npm # npm install のキャッシュパス
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
-
-      # Puppeteer のブラウザをキャッシュするステップを追加
+      # Puppeteer のブラウザをキャッシュするステップ
       # Puppeteerはデフォルトで ~/.cache/puppeteer にインストールされることが多いです
       - name: Cache Puppeteer browsers
-        uses: actions/cache@v3
+        uses: actions/cache@v4 # アクションの最新バージョンを使用
         with:
-          path: ~/.cache/puppeteer # Puppeteer のキャッシュパス
+          path: ~/.cache/puppeteer
           key: ${{ runner.os }}-puppeteer-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-puppeteer-
 
-      - name: Install system dependencies # このステップはキャッシュが効かないため、毎回実行されます
+      - name: Install system dependencies for Puppeteer
         run: |
-          sudo add-apt-repository "deb http://archive.ubuntu.com/ubuntu/ focal main restricted universe multiverse"
           sudo apt-get update
-          sudo apt-get install -y libasound2
+          # libasound2 のインストール。Ubuntuのバージョンによっては libasound2t64 が必要
+          # 両方試してみて、エラーが出ない方を使用してください。
+          # 最新のUbuntuでは libasound2t64 が推奨されます。
+          sudo apt-get install -y --no-install-recommends libasound2 || sudo apt-get install -y --no-install-recommends libasound2t64
 
-      - name: Install dependencies # キャッシュがあれば高速化、なければ通常通りインストール
-        run: npm install
+          # 他にもPuppeteerでよく必要となる依存関係があればここに追加
+          # 例: sudo apt-get install -y --no-install-recommends libnss3 libxss1 libatk-bridge2.0-0 libgtk-3-0 libgbm-dev
 
-      - name: Install Puppeteer browsers # キャッシュがあれば高速化、なければ通常通りインストール
-        run: npx puppeteer browsers install chrome
+      - name: Install Node.js dependencies
+        run: npm ci # package-lock.json に基づいて依存関係をインストール
+
+      # Puppeteer のブラウザインストールは npm ci で自動的に行われることが多いので、
+      # 明示的に実行する必要がない場合はこのステップを削除またはコメントアウトしてください。
+      # 必要であれば以下のコメントを外してください。
+      # - name: Install Puppeteer browsers if needed
+      #   run: npx puppeteer browsers install chrome
 
       - name: Run the script
         run: node slack_notify_light.js
@@ -58,6 +58,7 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          # ファイルに変更がない場合はコミットしないように改良
           git add lastContentHash.txt
-          git commit -m "Update lastContentHash.txt" || echo "No changes to commit"
-          git push origin main || echo "No changes to push"
+          git diff --quiet --exit-code || git commit -m "Update lastContentHash.txt"
+          git push origin main || echo "No changes to push or main branch not found" # エラーを抑制し、メッセージを表示
