@@ -3,7 +3,7 @@ name: Check for Updates
 on:
   workflow_dispatch:
   schedule:
-    - cron: '**0 0 /2 *' # 2日ごとに実行
+    - cron: '*/60 * * * *' # 60分ごとに実行
 
 jobs:
   check_for_updates:
