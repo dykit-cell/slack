@@ -108,15 +108,15 @@ async function checkForUpdates() {
 
         // ページ内容が完全にロードされるまで待機
         try {
-            await page.waitForSelector('tr.portal-item-expired', { timeout: 15000 }); // 15秒まで待機
+            await page.waitForSelector('portal-listitem-text-inner', { timeout: 15000 }); // 15秒まで待機
         } catch (error) {
-            console.error('エラー: `tr.portal-item-expired` 要素が見つかりませんでした。ページ構造が変わった可能性があります。', error);
+            console.error('エラー: `portal-listitem-text-inner` 要素が見つかりませんでした。ページ構造が変わった可能性があります。', error);
             await sendSlackMessage('エラー: 回覧板の要素が見つかりませんでした。ウェブサイトの構造変更を確認してください。');
             return; // 処理を中断
         }
 
         // `tr.portal-item-expired` 内のリンクテキストを取得
-        const contentToCheck = await page.$eval('tr.portal-item-expired a', element => element.textContent.trim());
+        const contentToCheck = await page.$eval('portal-listitem-text-inner a', element => element.textContent.trim());
         console.log('取得した回覧板コンテンツ:', contentToCheck);
 
         // コンテンツのハッシュを計算
